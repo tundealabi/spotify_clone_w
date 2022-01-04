@@ -6,8 +6,25 @@ import {
   RssIcon,
   PlusCircleIcon,
 } from '@heroicons/react/outline';
+import useSpotify from 'hooks/useSpotify';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 export default function Sidebar() {
+  const spotifyApi = useSpotify();
+  const { data: session, status } = useSession();
+  const [playlists, setPlaylists] = useState<
+    SpotifyApi.PlaylistObjectSimplified[]
+  >([]);
+
+  useEffect((): void => {
+    if (spotifyApi.getAccessToken()) {
+      spotifyApi.getUserPlaylists().then((data) => {
+        setPlaylists(data.body.items);
+      });
+    }
+  }, [session, spotifyApi]);
+  console.log('playlist', playlists);
   return (
     <div className="text-gray-500 p-5 text-sm border-r-gray-900 overflow-y-scroll scrollbar-hide h-screen">
       <div className="space-y-4">
@@ -37,8 +54,13 @@ export default function Sidebar() {
           <RssIcon className="h-5 w-5" />
           <p>Your Episodes</p>
         </button>
-
+        <hr className="border-t-[0.1px] border-gray-900" />
         {/* Playlists... */}
+        {playlists.map((playlist) => (
+          <p key={playlist.id} className="cursor-pointer hover:text-white">
+            {playlist.name}
+          </p>
+        ))}
       </div>
     </div>
   );
